@@ -1969,11 +1969,11 @@ class VoteCastDBHandler(BasicDBHandler):
                 self.updatedChannels.clear()
 
             if channel_ids:
-                parameters = ",".join("?" * len(channel_ids))
-                sql = "Select channel_id, vote FROM ChannelVotes WHERE channel_id in (" + parameters + ")"
+                sql = "SELECT * FROM (" + " UNION ALL ".join("SELECT %s, vote FROM ChannelVotes WHERE channel_id = %s" % (cid, cid) for cid in channel_ids) + ")"
+
                 positive_votes = {}
                 negative_votes = {}
-                for channel_id, vote in self._db.fetchall(sql, channel_ids):
+                for channel_id, vote in self._db.fetchall(sql):
                     if vote == 2:
                         positive_votes[channel_id] = positive_votes.get(channel_id, 0) + 1
                     elif vote == -1:
