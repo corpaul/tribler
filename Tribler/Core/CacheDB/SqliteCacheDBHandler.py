@@ -1969,18 +1969,24 @@ class VoteCastDBHandler(BasicDBHandler):
                 self.updatedChannels.clear()
 
             if channel_ids:
-                sql = "SELECT * FROM (" + " UNION ALL ".join("SELECT %s, vote FROM ChannelVotes WHERE channel_id = %s" % (cid, cid) for cid in channel_ids) + ")"
+                def get_votes():
+                    sql = "SELECT * FROM (" + " UNION ALL ".join("SELECT %s, vote FROM ChannelVotes WHERE channel_id = %s" % (cid, cid) for cid in channel_ids) + ")"
 
-                positive_votes = {}
-                negative_votes = {}
-                for channel_id, vote in self._db.fetchall(sql):
-                    if vote == 2:
-                        positive_votes[channel_id] = positive_votes.get(channel_id, 0) + 1
-                    elif vote == -1:
-                        negative_votes[channel_id] = negative_votes.get(channel_id, 0) + 1
+                    positive_votes = {}
+                    negative_votes = {}
+                    for channel_id, vote in self._db.fetchall(sql):
+                        if vote == 2:
+                            positive_votes[channel_id] = positive_votes.get(channel_id, 0) + 1
+                        elif vote == -1:
+                            negative_votes[channel_id] = negative_votes.get(channel_id, 0) + 1
 
-                updates = [(positive_votes.get(channel_id, 0), negative_votes.get(channel_id, 0), channel_id) for channel_id in channel_ids]
-                self._db.executemany("UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
+                    updates = [(positive_votes.get(channel_id, 0), negative_votes.get(channel_id, 0), channel_id) for channel_id in channel_ids]
+                    return updates
+
+                def update_votes(updates):
+                    self._db.executemany("UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
+
+                update_votes(get_votes())
 
                 for channel_id in channel_ids:
                     self.notifier.notify(NTFY_VOTECAST, NTFY_UPDATE, channel_id)
