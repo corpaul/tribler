@@ -99,7 +99,7 @@ class AllChannelCommunity(Community):
         self._register_task(self.create_channelcast, delay=CHANNELCAST_FIRST_MESSAGE)
         # 15/02/12 Boudewijn: add the callback id to _pending_callbacks to allow the task to be
         # unregistered when the community is unloaded
-        self._pending_callbacks.append(self._register_task(self.unload_preview, priority= -128))
+        self._pending_callbacks.append(self._register_task(self.unload_preview, priority=-128))
 
         self._blocklist = {}
         self._searchCallbacks = {}
@@ -467,11 +467,11 @@ class AllChannelCommunity(Community):
                     # if channel_id is not found, then this is a manual join
                     # insert placeholder into database which will be replaced after channelmessage has been received
                     if not channel_id:
-                        select_channel = "SELECT id FROM _Channels WHERE dispersy_cid = ?"
+                        select_channel = "SELECT id FROM Channels WHERE dispersy_cid = ?"
                         channel_id = self._channelcast_db._db.fetchone(select_channel, (buffer(message.payload.cid),))
 
                         if not channel_id:
-                            insert_channel = "INSERT INTO _Channels (dispersy_cid, peer_id, name) VALUES (?, ?, ?); SELECT last_insert_rowid();"
+                            insert_channel = "INSERT INTO Channels (dispersy_cid, peer_id, name) VALUES (?, ?, ?); SELECT last_insert_rowid();"
                             channel_id = self._channelcast_db._db.fetchone(insert_channel, (buffer(message.payload.cid), -1, ''))
                 else:
                     peer_id = self._peer_db.addOrGetPeerID(authentication_member.public_key)
