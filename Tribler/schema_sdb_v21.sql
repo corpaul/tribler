@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS _Channels (
   nr_favorite               integer         DEFAULT 0
 );
 --CREATE VIEW Channels AS SELECT * FROM _Channels WHERE deleted_at IS NULL;
+CREATE VIEW Channels AS SELECT * FROM _Channels;
 
 CREATE TABLE IF NOT EXISTS _ChannelTorrents (
   id                        integer         PRIMARY KEY ASC,
