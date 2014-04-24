@@ -256,6 +256,7 @@ class SQLiteCacheDBBase:
             # Niels 19-09-2012: even though my database upgraded to increase the pagesize it did not keep wal mode?
             # Enabling WAL on every starup
             cur.execute("PRAGMA journal_mode = WAL;")
+            cur.execute("PRAGMA automatic_index = off;")
 
         return cur
 
