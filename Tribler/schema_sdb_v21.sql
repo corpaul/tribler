@@ -239,8 +239,8 @@ CREATE TABLE IF NOT EXISTS _ChannelTorrents (
   time_stamp                integer,
   modified                  integer         DEFAULT (strftime('%s','now')),
   inserted                  integer         DEFAULT (strftime('%s','now')),
-  deleted_at                integer
-  
+  deleted_at                integer,
+  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
 );
 CREATE VIEW ChannelTorrents AS SELECT * FROM _ChannelTorrents WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS TorChannelIndex ON _ChannelTorrents(channel_id);
@@ -258,7 +258,8 @@ CREATE TABLE IF NOT EXISTS _Playlists (
   modified                  integer         DEFAULT (strftime('%s','now')),
   inserted                  integer         DEFAULT (strftime('%s','now')),
   deleted_at                integer,
-  UNIQUE (dispersy_id)
+  UNIQUE (dispersy_id),
+  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
 );
 CREATE VIEW Playlists AS SELECT * FROM _Playlists WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS PlayChannelIndex ON _Playlists(channel_id);
@@ -287,7 +288,8 @@ CREATE TABLE IF NOT EXISTS _Comments (
   time_stamp            integer,
   inserted              integer         DEFAULT (strftime('%s','now')),
   deleted_at            integer,
-  UNIQUE (dispersy_id)
+  UNIQUE (dispersy_id),
+  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
 );
 CREATE VIEW Comments AS SELECT * FROM _Comments WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS ComChannelIndex ON _Comments(channel_id);
@@ -322,7 +324,8 @@ CREATE TABLE IF NOT EXISTS _Moderations (
   time_stamp            integer         NOT NULL,
   inserted              integer         DEFAULT (strftime('%s','now')),
   deleted_at            integer,
-  UNIQUE (dispersy_id)
+  UNIQUE (dispersy_id),
+  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
 );
 CREATE VIEW Moderations AS SELECT * FROM _Moderations WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS MoChannelIndex ON _Moderations(channel_id);
