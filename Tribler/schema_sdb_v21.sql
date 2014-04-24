@@ -213,7 +213,7 @@ CREATE TABLE BundlerPreference (
 ----------------------------------------
 -- v9: Open2Edit replacing ChannelCast tables
 
-CREATE TABLE IF NOT EXISTS Channels (
+CREATE TABLE IF NOT EXISTS _Channels (
   id                        integer         PRIMARY KEY ASC,
   dispersy_cid              text,
   peer_id                   integer,
@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS Channels (
   nr_spam                   integer         DEFAULT 0,
   nr_favorite               integer         DEFAULT 0
 );
---CREATE VIEW Channels AS SELECT * FROM _Channels WHERE deleted_at IS NULL;
+CREATE VIEW Channels AS SELECT * FROM Channels WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS _ChannelTorrents (
   id                        integer         PRIMARY KEY ASC,
@@ -239,8 +239,8 @@ CREATE TABLE IF NOT EXISTS _ChannelTorrents (
   time_stamp                integer,
   modified                  integer         DEFAULT (strftime('%s','now')),
   inserted                  integer         DEFAULT (strftime('%s','now')),
-  deleted_at                integer,
-  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
+  deleted_at                integer
+  
 );
 CREATE VIEW ChannelTorrents AS SELECT * FROM _ChannelTorrents WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS TorChannelIndex ON _ChannelTorrents(channel_id);
@@ -258,8 +258,7 @@ CREATE TABLE IF NOT EXISTS _Playlists (
   modified                  integer         DEFAULT (strftime('%s','now')),
   inserted                  integer         DEFAULT (strftime('%s','now')),
   deleted_at                integer,
-  UNIQUE (dispersy_id),
-  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
+  UNIQUE (dispersy_id)
 );
 CREATE VIEW Playlists AS SELECT * FROM _Playlists WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS PlayChannelIndex ON _Playlists(channel_id);
@@ -288,8 +287,7 @@ CREATE TABLE IF NOT EXISTS _Comments (
   time_stamp            integer,
   inserted              integer         DEFAULT (strftime('%s','now')),
   deleted_at            integer,
-  UNIQUE (dispersy_id),
-  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
+  UNIQUE (dispersy_id)
 );
 CREATE VIEW Comments AS SELECT * FROM _Comments WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS ComChannelIndex ON _Comments(channel_id);
@@ -324,8 +322,7 @@ CREATE TABLE IF NOT EXISTS _Moderations (
   time_stamp            integer         NOT NULL,
   inserted              integer         DEFAULT (strftime('%s','now')),
   deleted_at            integer,
-  UNIQUE (dispersy_id),
-  FOREIGN KEY (channel_id) REFERENCES Channels(id) ON DELETE CASCADE
+  UNIQUE (dispersy_id)
 );
 CREATE VIEW Moderations AS SELECT * FROM _Moderations WHERE deleted_at IS NULL;
 CREATE INDEX IF NOT EXISTS MoChannelIndex ON _Moderations(channel_id);
