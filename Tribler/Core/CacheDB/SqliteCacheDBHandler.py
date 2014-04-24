@@ -1984,7 +1984,7 @@ class VoteCastDBHandler(BasicDBHandler):
                     return updates
 
                 def update_votes(updates):
-                    self._db.executemany("UPDATE Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
+                    self._db.executemany("UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
 
                 update_votes(get_votes())
 
@@ -2050,7 +2050,7 @@ class ChannelCastDBHandler(BasicDBHandler):
     def __init__(self):
         try:
             db = SQLiteCacheDB.getInstance()
-            BasicDBHandler.__init__(self, db, 'Channels')
+            BasicDBHandler.__init__(self, db, '_Channels')
             self._logger.debug("Channels: DB made")
         except:
             self._logger.error("Channels: couldn't make the table")
@@ -2074,14 +2074,14 @@ class ChannelCastDBHandler(BasicDBHandler):
         def updateNrTorrents():
             while True:
                 rows = self.getChannelNrTorrents(50)
-                update = "UPDATE Channels SET nr_torrents = ? WHERE id = ?"
+                update = "UPDATE _Channels SET nr_torrents = ? WHERE id = ?"
                 self._db.executemany(update, rows)
 
                 # schedule a call for in 5 minutes
                 yield 300.0
 
                 rows = self.getChannelNrTorrentsLatestUpdate(50)
-                update = "UPDATE Channels SET nr_torrents = ?, modified = ? WHERE id = ?"
+                update = "UPDATE _Channels SET nr_torrents = ?, modified = ? WHERE id = ?"
                 self._db.executemany(update, rows)
 
                 # schedule a call for in 5 minutes
@@ -2146,7 +2146,7 @@ class ChannelCastDBHandler(BasicDBHandler):
         channel_id = self._db.fetchone(get_channel, (peer_id,))
 
         if channel_id:  # update this channel
-            update_channel = "UPDATE Channels SET dispersy_cid = ?, name = ?, description = ? WHERE id = ?"
+            update_channel = "UPDATE _Channels SET dispersy_cid = ?, name = ?, description = ? WHERE id = ?"
             self._db.execute_write(update_channel, (_dispersy_cid, name, description, channel_id))
 
             self.notifier.notify(NTFY_CHANNELCAST, NTFY_UPDATE, channel_id)
@@ -2156,12 +2156,12 @@ class ChannelCastDBHandler(BasicDBHandler):
             channel_id = self._db.fetchone(get_channel, (_dispersy_cid,))
 
             if channel_id:
-                update_channel = "UPDATE Channels SET name = ?, description = ?, peer_id = ? WHERE dispersy_cid = ?"
+                update_channel = "UPDATE _Channels SET name = ?, description = ?, peer_id = ? WHERE dispersy_cid = ?"
                 self._db.execute_write(update_channel, (name, description, peer_id, _dispersy_cid))
 
             else:
                 # insert channel
-                insert_channel = "INSERT INTO Channels (dispersy_cid, peer_id, name, description) VALUES (?, ?, ?, ?); SELECT last_insert_rowid();"
+                insert_channel = "INSERT INTO _Channels (dispersy_cid, peer_id, name, description) VALUES (?, ?, ?, ?); SELECT last_insert_rowid();"
                 channel_id = self._db.fetchone(insert_channel, (_dispersy_cid, peer_id, name, description))
 
             self.notifier.notify(NTFY_CHANNELCAST, NTFY_INSERT, channel_id)
@@ -2173,7 +2173,7 @@ class ChannelCastDBHandler(BasicDBHandler):
 
     def on_channel_modification_from_dispersy(self, channel_id, modification_type, modification_value):
         if modification_type in ['name', 'description']:
-            update_channel = "UPDATE Channels Set " + modification_type + " = ?, modified = ? WHERE id = ?"
+            update_channel = "UPDATE _Channels Set " + modification_type + " = ?, modified = ? WHERE id = ?"
             self._db.execute_write(update_channel, (modification_value, long(time()), channel_id))
 
             self.notifier.notify(NTFY_CHANNELCAST, NTFY_MODIFIED, channel_id)
@@ -2183,7 +2183,7 @@ class ChannelCastDBHandler(BasicDBHandler):
         torrent_ids, inserted = self.torrent_db.addOrGetTorrentIDSReturn(infohashes)
 
         insert_data = []
-        updatedChannels = {}
+        updated_channels = {}
         for i, torrent in enumerate(torrentlist):
             channel_id, dispersy_id, peer_id, infohash, timestamp, name, files, trackers = torrent
             torrent_id = torrent_ids[i]
@@ -2193,17 +2193,17 @@ class ChannelCastDBHandler(BasicDBHandler):
                 self.torrent_db.addExternalTorrentNoDef(infohash, name, files, trackers, timestamp, "DISP", {'dispersy_id': dispersy_id})
 
             insert_data.append((dispersy_id, torrent_id, channel_id, peer_id, name, timestamp))
-            updatedChannels[channel_id] = updatedChannels.get(channel_id, 0) + 1
+            updated_channels[channel_id] = updated_channels.get(channel_id, 0) + 1
 
         if len(insert_data) > 0:
             sql_insert_torrent = "INSERT INTO _ChannelTorrents (dispersy_id, torrent_id, channel_id, peer_id, name, time_stamp) VALUES (?,?,?,?,?,?)"
             self._db.executemany(sql_insert_torrent, insert_data)
 
-        sql_update_channel = "UPDATE Channels SET modified = strftime('%s','now'), nr_torrents = nr_torrents+? WHERE id = ?"
-        updateChannels = [(new_torrents, channel_id) for channel_id, new_torrents in updatedChannels.iteritems()]
-        self._db.executemany(sql_update_channel, updateChannels)
+        sql_update_channel = "UPDATE _Channels SET modified = strftime('%s','now'), nr_torrents = nr_torrents+? WHERE id = ?"
+        update_channels = [(new_torrents, channel_id) for channel_id, new_torrents in updated_channels.iteritems()]
+        self._db.executemany(sql_update_channel, update_channels)
 
-        for channel_id in updatedChannels.keys():
+        for channel_id in updated_channels.keys():
             self.notifier.notify(NTFY_CHANNELCAST, NTFY_UPDATE, channel_id)
 
     def on_remove_torrent_from_dispersy(self, channel_id, dispersy_id, redo):
@@ -2619,11 +2619,11 @@ class ChannelCastDBHandler(BasicDBHandler):
             # use this possibility to update nrtorrent in channel
 
             if 'time_stamp' in keys and len(results) > 0:
-                update = "UPDATE Channels SET nr_torrents = ?, modified = ? WHERE id = ?"
+                update = "UPDATE _Channels SET nr_torrents = ?, modified = ? WHERE id = ?"
                 self._db.execute_write(update, (len(results), results[0][keys.index('time_stamp')], channel_id))
             else:
                 # use this possibility to update nrtorrent in channel
-                update = "UPDATE Channels SET nr_torrents = ? WHERE id = ?"
+                update = "UPDATE _Channels SET nr_torrents = ? WHERE id = ?"
                 self._db.execute_write(update, (len(results), channel_id))
 
         return self.__fixTorrents(keys, results)
