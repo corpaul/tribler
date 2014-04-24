@@ -1970,6 +1970,8 @@ class VoteCastDBHandler(BasicDBHandler):
 
             if channel_ids:
                 def get_votes():
+                    return [1, 2, 3]
+
                     sql = "SELECT * FROM (" + " UNION ALL ".join("SELECT %s, vote FROM ChannelVotes WHERE channel_id = %s" % (cid, cid) for cid in channel_ids) + ")"
 
                     positive_votes = {}
