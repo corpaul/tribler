@@ -1986,7 +1986,7 @@ class VoteCastDBHandler(BasicDBHandler):
                 def update_votes(updates):
                     # self._db.executemany("UPDATE Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
                     for u in updates:
-                        self._db.execute("UPDATE Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", u)
+                        self._db.execute_write("UPDATE Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", u)
 
 
                 update_votes(get_votes())
