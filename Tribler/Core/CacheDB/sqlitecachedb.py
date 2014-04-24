@@ -258,7 +258,6 @@ class SQLiteCacheDBBase:
             cur.execute("PRAGMA journal_mode = WAL;")
             # try to remove the temp file generations
             cur.execute("PRAGMA automatic_index = off;")
-            cur.execute("PRAGMA temp_store = 2;")
 
         return cur
 
