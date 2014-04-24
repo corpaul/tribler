@@ -687,6 +687,7 @@ class TorrentDBHandler(BasicDBHandler):
         return dict
 
     def _addTorrentToDB(self, torrentdef, source, extra_info):
+        return
         assert isinstance(torrentdef, TorrentDef), "TORRENTDEF has invalid type: %s" % type(torrentdef)
         assert torrentdef.is_finalized(), "TORRENTDEF is not finalized"
 
