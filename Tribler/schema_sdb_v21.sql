@@ -226,8 +226,8 @@ CREATE TABLE IF NOT EXISTS _Channels (
   nr_spam                   integer         DEFAULT 0,
   nr_favorite               integer         DEFAULT 0
 );
---CREATE VIEW Channels AS SELECT * FROM _Channels WHERE deleted_at IS NULL;
-CREATE VIEW Channels AS SELECT * FROM _Channels;
+CREATE INDEX IF NOT EXISTS ChannelDeletedIndex ON _Channels(deleted_at);
+CREATE VIEW Channels AS SELECT * FROM _Channels WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS _ChannelTorrents (
   id                        integer         PRIMARY KEY ASC,
