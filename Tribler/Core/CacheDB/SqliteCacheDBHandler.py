@@ -687,7 +687,6 @@ class TorrentDBHandler(BasicDBHandler):
         return dict
 
     def _addTorrentToDB(self, torrentdef, source, extra_info):
-        return
         assert isinstance(torrentdef, TorrentDef), "TORRENTDEF has invalid type: %s" % type(torrentdef)
         assert torrentdef.is_finalized(), "TORRENTDEF is not finalized"
 
@@ -1987,7 +1986,8 @@ class VoteCastDBHandler(BasicDBHandler):
                 def update_votes(updates):
                     self._db.executemany("UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
 
-                update_votes(get_votes())
+                votes = get_votes()
+                update_votes(votes)
 
                 for channel_id in channel_ids:
                     self.notifier.notify(NTFY_VOTECAST, NTFY_UPDATE, channel_id)
