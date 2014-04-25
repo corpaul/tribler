@@ -455,7 +455,6 @@ class SQLiteCacheDBBase:
 
     def _executemany(self, sql, args=None):
         cur = self.getCursor()
-
         if self.show_execute:
             thread_name = threading.currentThread().getName()
             self._logger.info('===%s===\n%s\n-----\n%s\n======\n', thread_name, sql, args)

@@ -831,6 +831,7 @@ class TorrentDBHandler(BasicDBHandler):
         r_parameters = r_parameters[:-1]
 
         sql = "SELECT torrent_id, infohash, swift_torrent_hash FROM Torrent WHERE infohash in (" + i_parameters + ") or swift_torrent_hash in (" + r_parameters + ")"
+        print sql
         results = self._db.fetchall(sql, infohashes + roothashes)
 
         info_dict = {}
@@ -1969,31 +1970,37 @@ class VoteCastDBHandler(BasicDBHandler):
                 self.updatedChannels.clear()
 
             if channel_ids:
-                def get_votes():
-                    # sql = "SELECT * FROM (" + " UNION ALL ".join("SELECT %s, vote FROM ChannelVotes WHERE channel_id = %s" % (cid, cid) for cid in channel_ids) + ")"
-                    sql = "SELECT channel_id, vote FROM ChannelVotes WHERE channel_id = %s" % choice(channel_ids)
-                    print sql
-                    positive_votes = {}
-                    negative_votes = {}
-                    for channel_id, vote in self._db.fetchall(sql):
-                        if vote == 2:
-                            positive_votes[channel_id] = positive_votes.get(channel_id, 0) + 1
-                        elif vote == -1:
-                            negative_votes[channel_id] = negative_votes.get(channel_id, 0) + 1
-
-                    updates = [(positive_votes.get(channel_id, 0), negative_votes.get(channel_id, 0), channel_id) for channel_id in channel_ids]
-                    return updates
-
-                def update_votes(updates):
-                    self._db.executemany("UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
-
-                votes = get_votes()
-                update_votes(votes)
+                votes = self.get_votes(channel_ids)
+                self.update_votes(votes)
 
                 for channel_id in channel_ids:
                     self.notifier.notify(NTFY_VOTECAST, NTFY_UPDATE, channel_id)
 
             yield 15.0
+
+    def get_votes(self, channel_ids):
+        sql = "SELECT * FROM (" + " UNION ALL ".join("SELECT %s, vote FROM ChannelVotes WHERE channel_id = %s" % (cid, cid) for cid in channel_ids) + ")"
+        #sql = "SELECT channel_id, vote FROM ChannelVotes WHERE channel_id = %s" % choice(channel_ids)
+        print sql
+        positive_votes = {}
+        negative_votes = {}
+        for channel_id, vote in self._db.fetchall(sql):
+            if vote == 2:
+                positive_votes[channel_id] = positive_votes.get(channel_id, 0) + 1
+            elif vote == -1:
+                negative_votes[channel_id] = negative_votes.get(channel_id, 0) + 1
+
+        updates = [(positive_votes.get(channel_id, 0), negative_votes.get(channel_id, 0), channel_id) for channel_id in channel_ids]
+        return updates
+
+    def update_votes(self, updates):
+        print "Updating votes\n" 
+        #print "UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ? (%s updates)" %  len(updates)                
+        for u in updates:
+            self._db.execute_write("UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", u)
+        
+        #self._db.executemany("UPDATE _Channels SET nr_favorite = ?, nr_spam = ? WHERE id = ?", updates)
+        print "Done\n"
 
     def get_latest_vote_dispersy_id(self, channel_id, voter_id):
         if voter_id:
