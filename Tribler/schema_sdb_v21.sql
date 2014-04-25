@@ -377,10 +377,10 @@ CREATE TABLE IF NOT EXISTS _ChannelVotes (
   vote                  integer,
   time_stamp            integer,
   deleted_at            integer,
-  PRIMARY KEY (channel_id, voter_id)
+  PRIMARY KEY (channel_id)
 );
 CREATE VIEW ChannelVotes AS SELECT * FROM _ChannelVotes WHERE deleted_at IS NULL;
-CREATE INDEX IF NOT EXISTS ChaVotIndex ON _ChannelVotes(channel_id);
+CREATE INDEX IF NOT EXISTS ChaVotIndex ON _ChannelVotes(channel_id, voter_id);
 CREATE INDEX IF NOT EXISTS VotChaIndex ON _ChannelVotes(voter_id);
 
 CREATE TABLE IF NOT EXISTS TorrentFiles (
