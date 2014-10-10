@@ -10,7 +10,7 @@ class StatisticsRequestPayload(Payload):
 
         def __init__(self,
                      key):
-
+            assert isinstance(key, unicode)
             self.key = key
 
 
