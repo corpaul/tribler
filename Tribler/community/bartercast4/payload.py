@@ -8,9 +8,9 @@ class StatisticsRequestPayload(Payload):
 
     class Implementation(Payload.Implementation):
 
-        def __init__(self,
-                     key):
+        def __init__(self, meta, key):
             assert isinstance(key, unicode)
+            super(StatisticsRequestPayload.Implementation, self).__init__(meta)
             self.key = key
 
 
