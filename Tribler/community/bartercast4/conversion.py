@@ -38,8 +38,9 @@ class StatisticsConversion(BinaryConversion):
     def _encode_statistics_response(self, message):
         text = message.payload.key.encode("UTF-8")
         statistic = message.payload.statistic.encode("UTF-8")
-        return pack("!BB", len(text) + len(statistic)), text, statistic
+        return pack("!B", len(text)), text, pack("!B", len(statistic)), statistic
 
     def _decode_statistics_response(self, placeholder, offset, data):
         text = "tmp"
-        return offset, placeholder.meta.payload.implement(text)
+        statistic = "tmpstats"
+        return offset, placeholder.meta.payload.implement(text, statistic)

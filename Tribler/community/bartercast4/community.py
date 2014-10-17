@@ -77,6 +77,7 @@ class BarterCommunity(Community):
     # todo
     def create_stats_response(self, key, store=True, update=True, forward=True):
         meta = self.get_meta_message(u"stats-response")
+        self._logger.error("sending stats: %s" % self._dispersy._statistics.bartercast)
         stat = json.dumps(self._dispersy._statistics.bartercast)
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),
@@ -94,5 +95,4 @@ class BarterCommunity(Community):
     def on_stats_response(self, messages):
         for message in messages:
             self._logger.error("stats-response: %s %s %s"
-                               % (message._distribution.global_time, message.payload.key, message.payload.stats))
-     
+                               % (message._distribution.global_time, message.payload.key, message.payload.statistic))
