@@ -53,12 +53,13 @@ class BarterCommunity(Community):
     def dispersy_sync_cache_enable(self):
         return False
 
-    def create_stats_request(self, key, store=True, update=True, forward=True):
+    def create_stats_request(self, candidate, key):
         meta = self.get_meta_message(u"stats-request")
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),
                             payload=(key,))
-        self._dispersy.store_update_forward([message], store, update, forward)
+        self._dispersy._endpoint.send([candidate], [message])
+        # self.send_packet([candidate], u"stats-request", message)
 
     def check_stats_request(self, messages):
         for message in messages:
