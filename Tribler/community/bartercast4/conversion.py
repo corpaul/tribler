@@ -1,4 +1,4 @@
-from struct import pack, unpack_from
+from struct import pack, unpack, unpack_from
 
 from Tribler.dispersy.member import Member
 from Tribler.dispersy.conversion import BinaryConversion
@@ -17,30 +17,43 @@ class StatisticsConversion(BinaryConversion):
                                  self._encode_statistics_response, self._decode_statistics_response)
 
     def _encode_statistics_request(self, message):
-        text = message.payload.key.encode("UTF-8")
-        return pack("!B", len(text)), text
+        stats_type = message.payload.stats_type
+        return pack("!i", stats_type),
 
     def _decode_statistics_request(self, placeholder, offset, data):
-        if len(data) < offset + 1:
-            raise DropPacket("Insufficient packet size")
+        #if len(data) < offset + 1:
+        #    raise DropPacket("Insufficient packet size")
 
-        text_length, = unpack_from("!B", data, offset)
-        offset += 1
+        #text_length, = unpack_from("!i", data, offset)
+        #offset += 1
 
-        try:
-            text = data[offset:offset + text_length].decode("UTF-8")
-            offset += text_length
-        except UnicodeError:
-            raise DropPacket("Unable to decode UTF-8")
-
-        return offset, placeholder.meta.payload.implement(text)
+        #try:
+        #    text = data[offset:offset + text_length].decode("UTF-8")
+        #    offset += text_length
+        #except UnicodeError:
+        #    raise DropPacket("Unable to decode UTF-8")
+        stats_type, = unpack_from("!i", data, offset)
+        offset += 4
+        return offset, placeholder.meta.payload.implement(stats_type)
 
     def _encode_statistics_response(self, message):
-        text = message.payload.key.encode("UTF-8")
-        statistic = message.payload.statistic.encode("UTF-8")
-        return pack("!B", len(text)), text, pack("!B", len(statistic)), statistic
+        stats_type = message.payload.stats_type
+        records = message.payload.records
+        pattern_len = 20 + 4
+        columns = 2
+        #pattern_occ = 1500 / pattern_len
+        pattern_occ = min(1500 / pattern_len, len(records) / columns)
+        pattern = "!i%s" % ("20si" * pattern_occ)
+        return pack(pattern, int(stats_type), *records),
 
     def _decode_statistics_response(self, placeholder, offset, data):
-        text = "tmp"
-        statistic = "tmpstats"
-        return offset, placeholder.meta.payload.implement(text, statistic)
+        stats_type, = unpack_from("!i", data, offset)
+        offset += 4
+
+        records = []
+        while offset < len(data):
+            r = unpack_from("!20si", data, offset)
+            records.append(r)
+            offset += 20 + 4
+
+        return offset, placeholder.meta.payload.implement(stats_type, records)

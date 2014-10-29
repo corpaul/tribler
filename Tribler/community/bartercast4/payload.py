@@ -8,17 +8,16 @@ class StatisticsRequestPayload(Payload):
 
     class Implementation(Payload.Implementation):
 
-        def __init__(self, meta, key):
-            assert isinstance(key, unicode)
+        def __init__(self, meta, stats_type):
             super(StatisticsRequestPayload.Implementation, self).__init__(meta)
-            self.key = key
+            self.stats_type = stats_type
 
 
 class StatisticsResponsePayload(Payload):
 
     class Implementation(Payload.Implementation):
 
-        def __init__(self, meta, key, statistic):
+        def __init__(self, meta, stats_type, records):
             super(StatisticsResponsePayload.Implementation, self).__init__(meta)
-            self.key = key
-            self.statistic = statistic
+            self.stats_type = stats_type
+            self.records = records
