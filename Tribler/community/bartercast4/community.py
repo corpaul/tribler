@@ -28,6 +28,23 @@ def getBartercastStatisticDescription(t):
 
 
 class BarterCommunity(Community):
+    @classmethod
+    def get_master_members(cls, dispersy):
+# generated: Thu Oct 30 12:59:19 2014
+# curve: NID_sect571r1
+# len: 571 bits ~ 144 bytes signature
+# pub: 170 3081a7301006072a8648ce3d020106052b81040027038192000405ef988346197abe009065e6f9f517263063495554e4d278074feb1be3e81586b44f90b8a11f170f0a059d8f26c259118e6afc775f3d1e7c46462c9de0ec2bb94e480390622056b002c1f121acc52c18a0857ce59e79cf73642a4787fcdc5398d332000fbd44b16f14b005c0910d81cb85392fd036f32a242044c8263e0c6b9dc10b68f9c30540cfbd8a6bb5ccec786e
+# pub-sha1 59accbc05521d8b894e8e6ef8d686411384cdec9
+#-----BEGIN PUBLIC KEY-----
+# MIGnMBAGByqGSM49AgEGBSuBBAAnA4GSAAQF75iDRhl6vgCQZeb59RcmMGNJVVTk
+# 0ngHT+sb4+gVhrRPkLihHxcPCgWdjybCWRGOavx3Xz0efEZGLJ3g7Cu5TkgDkGIg
+# VrACwfEhrMUsGKCFfOWeec9zZCpHh/zcU5jTMgAPvUSxbxSwBcCRDYHLhTkv0Dbz
+# KiQgRMgmPgxrncELaPnDBUDPvYprtczseG4=
+#-----END PUBLIC KEY-----
+        master_key = "3081a7301006072a8648ce3d020106052b81040027038192000405ef988346197abe009065e6f9f517263063495554e4d278074feb1be3e81586b44f90b8a11f170f0a059d8f26c259118e6afc775f3d1e7c46462c9de0ec2bb94e480390622056b002c1f121acc52c18a0857ce59e79cf73642a4787fcdc5398d332000fbd44b16f14b005c0910d81cb85392fd036f32a242044c8263e0c6b9dc10b68f9c30540cfbd8a6bb5ccec786e".decode("HEX")
+        master = dispersy.get_member(public_key=master_key)
+        return [master]
+
     def __init__(self, dispersy, master, my_member):
         super(BarterCommunity, self).__init__(dispersy, master, my_member)
         self._dispersy = dispersy
@@ -53,6 +70,8 @@ class BarterCommunity(Community):
                     self.on_stats_response)
         ]
 
+    def initialize(self, integrate_with_tribler=False, auto_join_channel=False):
+        super(BarterCommunity, self).initialize()
 
     def initiate_conversions(self):
         return [DefaultConversion(self), StatisticsConversion(self)]
@@ -101,6 +120,7 @@ class BarterCommunity(Community):
         meta = self.get_meta_message(u"stats-response")
         self._logger.info("sending stats: %s" % self._dispersy._statistics.bartercast)
         # records = self._dispersy._statistics.bartercast
+        print "REAL STATS: %s" % self._dispersy._statistics.bartercast
         records = ["peerid1", 123, "peerid2", 456]
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),

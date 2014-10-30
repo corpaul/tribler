@@ -324,6 +324,7 @@ class ChannelCommunity(Community):
                                 payload=(infohash, timestamp, name, files, trackers))
 
             messages.append(message)
+            print "created torrent"
 
         self._dispersy.store_update_forward(messages, store, update, forward)
         return messages
@@ -341,6 +342,7 @@ class ChannelCommunity(Community):
             yield message
 
     def _disp_on_torrent(self, messages):
+        print "received TORRENT"
         if self.integrate_with_tribler:
             torrentlist = []
             for message in messages:
@@ -353,12 +355,14 @@ class ChannelCommunity(Community):
 
                 torrentlist.append((self._channel_id, dispersy_id, peer_id, message.payload.infohash, message.payload.timestamp, message.payload.name, message.payload.files, message.payload.trackers))
                 self._statistics.dict_inc("torrents_received", peer_id)
-
+                print "torrents_received increased 1"
                 # TODO: schedule a request for roothashes
             self._channelcast_db.on_torrents_from_dispersy(torrentlist)
         else:
             for message in messages:
                 self._channelcast_db.newTorrent(message)
+                print "torrents_received increased 2"
+                self._statistics.dict_inc("torrents_received", message.authentication.member.public_key)
 
     def _disp_undo_torrent(self, descriptors, redo=False):
         for _, _, packet in descriptors:
