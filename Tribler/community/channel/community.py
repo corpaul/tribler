@@ -22,6 +22,7 @@ from conversion import ChannelConversion
 from message import DelayMessageReqChannelMessage
 from payload import (ChannelPayload, TorrentPayload, PlaylistPayload, CommentPayload, ModificationPayload,
                      PlaylistTorrentPayload, MissingChannelPayload, MarkTorrentPayload)
+from twisted.python.log import msg
 
 
 if __debug__:
@@ -265,6 +266,7 @@ class ChannelCommunity(Community):
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),
                             payload=(name, description))
+        msg("channel-message-forwarded")
         self._dispersy.store_update_forward([message], store, update, forward)
         return message
 
@@ -278,6 +280,7 @@ class ChannelCommunity(Community):
             yield message
 
     def _disp_on_channel(self, messages):
+        msg("channel-message-received")
         if self.integrate_with_tribler:
             for message in messages:
                 assert self._cid == self._master_member.mid
@@ -324,7 +327,7 @@ class ChannelCommunity(Community):
                                 payload=(infohash, timestamp, name, files, trackers))
 
             messages.append(message)
-            print "created torrent"
+            print "created-torrent"
 
         self._dispersy.store_update_forward(messages, store, update, forward)
         return messages
@@ -354,7 +357,7 @@ class ChannelCommunity(Community):
                     peer_id = self._peer_db.addOrGetPeerID(authentication_member.public_key)
 
                 torrentlist.append((self._channel_id, dispersy_id, peer_id, message.payload.infohash, message.payload.timestamp, message.payload.name, message.payload.files, message.payload.trackers))
-                self._statistics.dict_inc("torrents_received", peer_id)
+                self._statistics.dict_inc("torrents_received", message.authentication.member.public_key)
                 print "torrents_received increased 1"
                 # TODO: schedule a request for roothashes
             self._channelcast_db.on_torrents_from_dispersy(torrentlist)
@@ -363,6 +366,7 @@ class ChannelCommunity(Community):
                 self._channelcast_db.newTorrent(message)
                 print "torrents_received increased 2"
                 self._statistics.dict_inc("torrents_received", message.authentication.member.public_key)
+                print self.statistics.bartercast
 
     def _disp_undo_torrent(self, descriptors, redo=False):
         for _, _, packet in descriptors:
