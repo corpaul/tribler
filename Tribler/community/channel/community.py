@@ -227,6 +227,7 @@ class ChannelCommunity(Community):
 
     def set_channel_mode(self, mode):
         curmode, isModerator = self.get_channel_mode()
+        self._logger.debug("Setting channel mode to: %s (isModerator: %s)" % (mode, isModerator))
         if isModerator and mode != curmode:
             public_messages = ChannelCommunity.CHANNEL_ALLOWED_MESSAGES[mode]
 
@@ -313,8 +314,9 @@ class ChannelCommunity(Community):
                                 payload=(infohash, timestamp, name, files, trackers))
 
             messages.append(message)
-            print "created-torrent"
+            self._logger.debug("created-torrent: %s on channel: %s" % (infohash, self._master_member))
 
+        self._logger.debug("candidates: %s" % str(self._candidates))
         self._dispersy.store_update_forward(messages, store, update, forward)
         return messages
 
@@ -331,7 +333,7 @@ class ChannelCommunity(Community):
             yield message
 
     def _disp_on_torrent(self, messages):
-        print "received TORRENT"
+        self._logger.debug("received TORRENTs")
         if self.integrate_with_tribler:
             torrentlist = []
             for message in messages:
@@ -351,6 +353,7 @@ class ChannelCommunity(Community):
             for message in messages:
                 print "torrents_received incr 2"
                 self._channelcast_db.newTorrent(message)
+                self._logger.debug("torrent received: %s on channel: %s" % (message.payload.infohash, self._master_member))
                 self._statistics.dict_inc("torrents_received", message.authentication.member.public_key)
                 print self.statistics.bartercast
 
