@@ -166,9 +166,17 @@ class AllChannelCommunity(Community):
 
         mychannel_id = self._channelcast_db.getMyChannelId()
 
+        # debug this shithole
+        self._logger.debug("number of candidates in iter_categories: %d" % len([candidate for candidate in self._iter_categories([u'walk', u'stumble'], once=True)]))
+        self._logger.debug("iter_categories: %s" % self._iter_categories([u'walk', u'stumble'], once=True))
+        self._logger.debug("number of candidates in blocklist: %d" % len(self._blocklist))
+        self._logger.debug("blocklist: %s" % self._blocklist)
+
         # loop through all candidates to see if we can find a non-blocked address
         for candidate in [candidate for candidate in self._iter_categories([u'walk', u'stumble'], once=True) if not candidate in self._blocklist]:
+            self._logger.debug("candidate: %s" % candidate)
             if not candidate:
+                self._logger.debug("we have no candidate")
                 continue
 
             didFavorite = False
@@ -184,6 +192,7 @@ class AllChannelCommunity(Community):
                     vote = self._votecast_db.getVoteForMyChannel(peer_id)
                     if vote != 2:
                         didFavorite = False
+                        self._logger.debug("not favorited")
                         break
 
             # Modify type of message depending on if all peers have marked my channels as their favorite
@@ -211,6 +220,8 @@ class AllChannelCommunity(Community):
 
                 # we're done
                 break
+            else:
+                self._logger.debug("no torrents to send")
 
         else:
             self._logger.debug("Did not send channelcast messages, no candidates or torrents")
@@ -360,8 +371,9 @@ class AllChannelCommunity(Community):
         else:
             communityclass = PreviewChannelCommunity
 
-        community = self._get_channel_community(cid)
-        community = self.dispersy.reclassify_community(community, communityclass)
+        community_old = self._get_channel_community(cid)
+        community = self.dispersy.reclassify_community(community_old, communityclass)
+        community._candidates = community_old._candidates
 
         # check if we need to cancel a previous vote
         latest_dispersy_id = self._votecast_db.get_latest_vote_dispersy_id(community._channel_id, None)
