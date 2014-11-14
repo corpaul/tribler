@@ -23,7 +23,7 @@ from message import DelayMessageReqChannelMessage
 from payload import (ChannelPayload, TorrentPayload, PlaylistPayload, CommentPayload, ModificationPayload,
                      PlaylistTorrentPayload, MissingChannelPayload, MarkTorrentPayload)
 from twisted.python.log import msg
-
+from twisted.internet.task import LoopingCall
 
 if __debug__:
     from Tribler.dispersy.tool.lencoder import log
@@ -94,6 +94,14 @@ class ChannelCommunity(Community):
             for community in self.dispersy.get_communities():
                 if isinstance(community, AllChannelCommunity):
                     self._channelcast_db = community._channelcast_db
+
+        self.register_task("printzooi", LoopingCall(self.printStuff)).start(5.0, now=True)
+
+    def printStuff(self):
+        self._logger.error("\n\n")
+        self._logger.error("channel member: %s" % self._my_member)
+        for c in self._candidates.itervalues():
+            self._logger.error("candidate: %s, category: %s" % (str(c), c.get_category(time())))
 
     def initiate_meta_messages(self):
         batch_delay = 3.0
@@ -328,9 +336,9 @@ class ChannelCommunity(Community):
                                 payload=(infohash, timestamp, name, files, trackers))
 
             messages.append(message)
-            self._logger.debug("created-torrent: %s on channel: %s" % (infohash, self._master_member))
+            self._logger.debug("created-torrent: %s on channel: %s" % (infohash, self._my_member))
 
-        self._logger.debug("candidates: %s" % str(self._candidates))
+        self._logger.error("created torrent on channel %s to candidates: %s" % (self._my_member, str(self._candidates)))
         self._dispersy.store_update_forward(messages, store, update, forward)
         return messages
 
@@ -347,7 +355,7 @@ class ChannelCommunity(Community):
             yield message
 
     def _disp_on_torrent(self, messages):
-        self._logger.debug("received TORRENTs")
+        self._logger.error("received TORRENTs")
         if self.integrate_with_tribler:
             torrentlist = []
             for message in messages:
