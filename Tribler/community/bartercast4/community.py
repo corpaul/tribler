@@ -118,10 +118,15 @@ class BarterCommunity(Community):
     def create_stats_response(self, stats_type, candidate):
         self._logger.info("OUT: stats-response")
         meta = self.get_meta_message(u"stats-response")
-        self._logger.info("sending stats: %s" % self._dispersy._statistics.bartercast)
-        # records = self._dispersy._statistics.bartercast
-        print "REAL STATS: %s" % self._dispersy._statistics.bartercast
-        records = ["peerid1", 123, "peerid2", 456]
+        records = self._dispersy._statistics.bartercast['torrents_received']
+        # print "REAL STATS: %s" % self._dispersy._statistics.bartercast
+        # records = ["peerid1", 123, "peerid2", 456]
+        # records = []
+        # for r in self._dispersy._statistics.bartercast['torrents_received']:
+        #    records.append(r)
+        #    records.append(self._dispersy._statistics.bartercast['torrents_received'][r])
+        self._logger.info("sending stats: %s" % records)
+
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),
                             destination=(candidate,),
