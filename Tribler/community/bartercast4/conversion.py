@@ -5,9 +5,10 @@ from Tribler.dispersy.conversion import BinaryConversion
 from Tribler.dispersy.message import DropPacket
 from Tribler.Core.Utilities.encoding import encode, decode
 
-import json
 
 class StatisticsConversion(BinaryConversion):
+
+    MTU_SIZE = 1500
 
     def __init__(self, community):
         super(StatisticsConversion, self).__init__(community, "\x02")
@@ -21,39 +22,72 @@ class StatisticsConversion(BinaryConversion):
         return pack("!i", stats_type),
 
     def _decode_statistics_request(self, placeholder, offset, data):
-        #if len(data) < offset + 1:
+        # if len(data) < offset + 1:
         #    raise DropPacket("Insufficient packet size")
 
-        #text_length, = unpack_from("!i", data, offset)
-        #offset += 1
+        # text_length, = unpack_from("!i", data, offset)
+        # offset += 1
 
-        #try:
+        # try:
         #    text = data[offset:offset + text_length].decode("UTF-8")
         #    offset += text_length
-        #except UnicodeError:
+        # except UnicodeError:
         #    raise DropPacket("Unable to decode UTF-8")
         stats_type, = unpack_from("!i", data, offset)
         offset += 4
         return offset, placeholder.meta.payload.implement(stats_type)
 
+    # TODO fix for dictionaries larger than MTU (split message)
     def _encode_statistics_response(self, message):
         stats_type = message.payload.stats_type
         records = message.payload.records
-        pattern_len = 20 + 4
+        # pattern_len = self.PUBKEY_LENGTH + 4
         columns = 2
-        #pattern_occ = 1500 / pattern_len
-        pattern_occ = min(1500 / pattern_len, len(records) / columns)
-        pattern = "!i%s" % ("20si" * pattern_occ)
-        return pack(pattern, int(stats_type), *records),
+        # pattern_occ = min(self.MTU_SIZE / pattern_len, len(records) / columns)
+        # pattern = "!i%s" % (("%isi" % self.PUBKEY_LENGTH) * pattern_occ)
+        # return pack(pattern, int(stats_type), *records),
+        packed = pack("!i", stats_type)
+        # r = public key of other peers
+        for r in records:
+            print "packing r: %d, %s %d" % (len(r), r, records[r])
+            packed = packed + pack("!H%dsi" % len(r), len(r), r, records[r])
+
+        # iterate through records
+        # for i in range(0, len(records) / columns):
+        #    r = records[i * columns]
+        #    value = records[i * columns + 1]
+        #    packed = packed + pack("!Hsi", len(r), r, value)
+        print "len packed: %d" % len(packed)
+        return packed,
 
     def _decode_statistics_response(self, placeholder, offset, data):
         stats_type, = unpack_from("!i", data, offset)
         offset += 4
-
         records = []
         while offset < len(data):
-            r = unpack_from("!20si", data, offset)
+            print "len buf: %d" % len(data)
+            len_key, = unpack_from("!H", data, offset)
+            if len_key < 1:
+                break
+            print "len_key: %d" % len_key
+            offset += 2
+            # key = data[offset: offset + len_key]
+            print "len buf: %d" % len(data)
+            key = unpack_from("!%ds" % len_key, data, offset)
+            offset += len_key
+            value = data[offset: offset + 4]
+            offset += 4
+            r = [key, value]
+            print r
+            # r = unpack_from(("!%dsi" % keylength), data, offset)
+            # offset += keylength + 4
             records.append(r)
-            offset += 20 + 4
-
         return offset, placeholder.meta.payload.implement(stats_type, records)
+
+        # records = []
+        # while offset < len(data):
+        #    r = unpack_from("!%isi" % self.PUBKEY_LENGTH, data, offset)
+        #    records.append(r)
+        #    offset += self.PUBKEY_LENGTH + 4
+
+        # return offset, placeholder.meta.payload.implement(stats_type, records)
