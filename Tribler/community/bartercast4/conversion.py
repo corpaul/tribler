@@ -42,15 +42,18 @@ class StatisticsConversion(BinaryConversion):
         stats_type = message.payload.stats_type
         records = message.payload.records
         # pattern_len = self.PUBKEY_LENGTH + 4
-        columns = 2
         # pattern_occ = min(self.MTU_SIZE / pattern_len, len(records) / columns)
         # pattern = "!i%s" % (("%isi" % self.PUBKEY_LENGTH) * pattern_occ)
         # return pack(pattern, int(stats_type), *records),
         packed = pack("!i", stats_type)
         # r = public key of other peers
         for r in records:
-            print "packing r: %d, %s %d" % (len(r), r, records[r])
-            packed = packed + pack("!H%dsi" % len(r), len(r), r, records[r])
+            # print "packing r: %d, %s %d" % (len(r), r, records[r])
+            # packed = packed + pack("!H%dsi" % len(r), len(r), r, records[r])
+            peer_id = r[0]
+            value = r[1]
+            print "packing r: %d, %s %d" % (len(peer_id), peer_id, value)
+            packed = packed + pack("!H%dsi" % len(peer_id), len(peer_id), peer_id, value)
 
         # iterate through records
         # for i in range(0, len(records) / columns):

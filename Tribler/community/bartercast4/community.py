@@ -9,6 +9,7 @@ from Tribler.dispersy.destination import CandidateDestination
 from Tribler.dispersy.distribution import DirectDistribution
 from Tribler.dispersy.message import Message, DelayMessageByProof
 from Tribler.dispersy.resolution import PublicResolution
+from Tribler.dispersy.statistics import Statistics
 import logging
 
 
@@ -118,7 +119,8 @@ class BarterCommunity(Community):
     def create_stats_response(self, stats_type, candidate):
         self._logger.info("OUT: stats-response")
         meta = self.get_meta_message(u"stats-response")
-        records = self._dispersy._statistics.bartercast['torrents_received']
+        # records = self._dispersy._statistics.bartercast['torrents_received']
+        records = self._dispersy._statistics.get_top_n_bartercast_statistics("torrents_received", 5)
         # print "REAL STATS: %s" % self._dispersy._statistics.bartercast
         # records = ["peerid1", 123, "peerid2", 456]
         # records = []
