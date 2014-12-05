@@ -149,3 +149,8 @@ class BarterCommunity(Community):
         for message in messages:
             self._logger.info("stats-response: %s %s %s"
                                % (message._distribution.global_time, message.payload.stats_type, message.payload.records))
+            for r in message.payload.records:
+                self._dispersy._statistics.log_interaction(self._dispersy,
+                                                           message.payload.stats_type,
+                                                           message.authentication.member.mid.encode('hex'),
+                                                           r[0], r[1])
