@@ -153,4 +153,4 @@ class BarterCommunity(Community):
                 self._dispersy._statistics.log_interaction(self._dispersy,
                                                            message.payload.stats_type,
                                                            message.authentication.member.mid.encode('hex'),
-                                                           r[0], r[1])
+                                                           r[0], int(r[1].encode('hex'), 16))
