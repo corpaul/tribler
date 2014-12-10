@@ -10,6 +10,7 @@ from Tribler.dispersy.distribution import DirectDistribution
 from Tribler.dispersy.message import Message, DelayMessageByProof
 from Tribler.dispersy.resolution import PublicResolution
 from Tribler.dispersy.statistics import Statistics
+from twisted.internet.task import LoopingCall
 import logging
 
 
@@ -26,6 +27,7 @@ def getBartercastStatisticDescription(t):
     if t is BartercastStatisticTypes.TORRENTS_RECEIVED:
         return "torrents_received"
     return "unknown"
+
 
 
 class BarterCommunity(Community):
@@ -154,3 +156,17 @@ class BarterCommunity(Community):
                                                            message.payload.stats_type,
                                                            message.authentication.member.mid.encode('hex'),
                                                            r[0], int(r[1].encode('hex'), 16))
+
+
+class BarterCommunityCrawler(BarterCommunity):
+
+    def on_introduction_response(self, messages):
+        super(BarterCommunity, self).on_introduction_response(messages)
+        # handler = Tunnel.get_instance().stats_handler
+        for message in messages:
+            # self.do_stats(message.candidate, lambda c, s, m=message: handler(c, s, m))
+            print "in on_introduction_response: Requesting stats from %s" % message.candidate
+            self.create_stats_request(message.candidate, BartercastStatisticTypes.TORRENTS_RECEIVED)
+
+    def start_walking(self):
+        self.register_task("take step", LoopingCall(self.take_step)).start(1.0, now=True)
