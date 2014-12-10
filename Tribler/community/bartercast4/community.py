@@ -102,7 +102,6 @@ class BarterCommunity(Community):
         # self._dispersy.store_update_forward([message], store, update, forward)
 
     def check_stats_request(self, messages):
-        self._logger.info("OUT: stats-request")
         for message in messages:
             allowed, _ = self._timeline.check(message)
             if allowed:

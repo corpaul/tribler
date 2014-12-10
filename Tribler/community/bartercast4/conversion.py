@@ -52,7 +52,6 @@ class StatisticsConversion(BinaryConversion):
             # packed = packed + pack("!H%dsi" % len(r), len(r), r, records[r])
             peer_id = r[0]
             value = r[1]
-            print "packing r: %d, %s %d" % (len(peer_id), peer_id, value)
             packed = packed + pack("!H%dsi" % len(peer_id), len(peer_id), peer_id, value)
 
         # iterate through records
@@ -60,7 +59,6 @@ class StatisticsConversion(BinaryConversion):
         #    r = records[i * columns]
         #    value = records[i * columns + 1]
         #    packed = packed + pack("!Hsi", len(r), r, value)
-        print "len packed: %d" % len(packed)
         return packed,
 
     def _decode_statistics_response(self, placeholder, offset, data):
@@ -68,20 +66,16 @@ class StatisticsConversion(BinaryConversion):
         offset += 4
         records = []
         while offset < len(data):
-            print "len buf: %d" % len(data)
             len_key, = unpack_from("!H", data, offset)
             if len_key < 1:
                 break
-            print "len_key: %d" % len_key
             offset += 2
             # key = data[offset: offset + len_key]
-            print "len buf: %d" % len(data)
             key = unpack_from("!%ds" % len_key, data, offset)
             offset += len_key
             value = data[offset: offset + 4]
             offset += 4
             r = [key, value]
-            print r
             # r = unpack_from(("!%dsi" % keylength), data, offset)
             # offset += keylength + 4
             records.append(r)
