@@ -81,7 +81,7 @@ class ChannelCommunity(Community):
                 if isinstance(community, AllChannelCommunity):
                     self._channelcast_db = community._channelcast_db
 
-        self.register_task("printzooi", LoopingCall(self.printStuff)).start(5.0, now=True)
+        # self.register_task("printzooi", LoopingCall(self.printStuff)).start(5.0, now=True)
 
     def printStuff(self):
         self._logger.error("\n\n")
