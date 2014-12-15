@@ -71,7 +71,7 @@ class StatisticsConversion(BinaryConversion):
                 break
             offset += 2
             # key = data[offset: offset + len_key]
-            key = unpack_from("!%ds" % len_key, data, offset)
+            key, = unpack_from("!%ds" % len_key, data, offset)
             offset += len_key
             value = data[offset: offset + 4]
             offset += 4
