@@ -144,15 +144,17 @@ class RelayRoute(object):
     it is online or not
     """
 
-    def __init__(self, circuit_id, sock_addr, rendezvous_relay=False):
+    def __init__(self, circuit_id, sock_addr, mid=0, rendezvous_relay=False):
         """
         @type sock_addr: (str, int)
         @type circuit_id: int
+        @type mid: str
         @return:
         """
 
         self.sock_addr = sock_addr
         self.circuit_id = circuit_id
+        self.mid = mid
         self.online = False
         self.creation_time = time.time()
         self.last_incoming = time.time()

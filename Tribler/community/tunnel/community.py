@@ -957,8 +957,8 @@ class TunnelCommunity(Community):
             new_circuit_id = self._generate_circuit_id(extend_candidate.sock_addr)
 
             self.waiting_for.add(new_circuit_id)
-            self.relay_from_to[new_circuit_id] = RelayRoute(circuit_id, candidate.sock_addr)
-            self.relay_from_to[circuit_id] = RelayRoute(new_circuit_id, extend_candidate.sock_addr)
+            self.relay_from_to[new_circuit_id] = RelayRoute(circuit_id, candidate.sock_addr, candidate.get_member().mid.encode('hex'))
+            self.relay_from_to[circuit_id] = RelayRoute(new_circuit_id, extend_candidate.sock_addr, extend_candidate.get_member().mid.encode('hex'))
 
             self.relay_session_keys[new_circuit_id] = self.relay_session_keys[circuit_id]
 
@@ -1155,6 +1155,7 @@ class TunnelCommunity(Community):
         elif isinstance(obj, RelayRoute):
             obj.bytes_up += num_bytes
             self.stats['bytes_relay_up'] += num_bytes
+            self._statistics.increase_relay_bytes_up(obj.mid, num_bytes)
         elif isinstance(obj, TunnelExitSocket):
             obj.bytes_up += num_bytes
             self.stats['bytes_exit'] += num_bytes
@@ -1474,8 +1475,8 @@ class TunnelCommunity(Community):
             self.send_cell([relay_candidate], u"rendezvous2", payload)
             self._logger.error("TunnelCommunity: relayed rendezvous1 as rendezvous2 into %s", relay_circuit_id)
 
-            self.relay_from_to[circuit_id] = RelayRoute(relay_circuit_id, relay_candidate.sock_addr, True)
-            self.relay_from_to[relay_circuit_id] = RelayRoute(circuit_id, message.candidate.sock_addr, True)
+            self.relay_from_to[circuit_id] = RelayRoute(relay_circuit_id, relay_candidate.sock_addr, relay_candidate.get_member().mid.encode('hex'), True)
+            self.relay_from_to[relay_circuit_id] = RelayRoute(circuit_id, message.candidate.sock_addr, message.candidate.get_member().mid.encode('hex'), True)
             self._logger.error("TunnelCommunity: connected circuits %s and %s", circuit_id, relay_circuit_id)
 
     def on_rendezvous2(self, messages):
