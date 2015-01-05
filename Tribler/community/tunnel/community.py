@@ -173,7 +173,7 @@ class StatsRequestCache(RandomNumberCache):
 
 class TunnelExitSocket(DatagramProtocol):
 
-    def __init__(self, circuit_id, community, sock_addr):
+    def __init__(self, circuit_id, community, sock_addr, mid=None):
         self._logger = logging.getLogger(self.__class__.__name__)
 
         self.port = None
@@ -183,6 +183,7 @@ class TunnelExitSocket(DatagramProtocol):
         self.ips = defaultdict(int)
         self.bytes_up = self.bytes_down = 0
         self.creation_time = time.time()
+        self.mid = mid
 
     def enable(self):
         if not self.enabled:
@@ -522,7 +523,7 @@ class TunnelCommunity(Community):
             return
 
         circuit_id = self._generate_circuit_id(first_hop.sock_addr)
-        circuit = Circuit(circuit_id, goal_hops, first_hop.sock_addr, self, ctype, callback, required_exit)
+        circuit = Circuit(circuit_id, goal_hops, first_hop.sock_addr, self, ctype, callback, required_exit, first_hop._association.mid.encode('hex'))
 
         self.request_cache.add(CircuitRequestCache(self, circuit, retry_lambda))
 
@@ -538,6 +539,7 @@ class TunnelCommunity(Community):
 
         dh_first_part_enc = self.crypto.hybrid_encrypt_str(first_hop.get_member()._ec, long_to_bytes(circuit.unverified_hop.dh_first_part))
         self.increase_bytes_sent(circuit, self.send_cell([first_hop], u"create", (circuit_id, dh_first_part_enc)))
+        self._statistics.increase_tunnels_created(circuit.mid)
 
     def readd_bittorrent_peers(self):
         for torrent, peers in self.bittorrent_peers.items():
@@ -897,7 +899,7 @@ class TunnelCommunity(Community):
 
             self.request_cache.add(CreatedRequestCache(self, circuit_id, candidate, candidates))
 
-            self.exit_sockets[circuit_id] = TunnelExitSocket(circuit_id, self, candidate.sock_addr)
+            self.exit_sockets[circuit_id] = TunnelExitSocket(circuit_id, self, candidate.sock_addr, candidate._association.mid.encode('hex'))
 
             if self.notifier:
                 from Tribler.Core.simpledefs import NTFY_TUNNEL, NTFY_JOINED
@@ -1155,10 +1157,10 @@ class TunnelCommunity(Community):
         elif isinstance(obj, RelayRoute):
             obj.bytes_up += num_bytes
             self.stats['bytes_relay_up'] += num_bytes
-            self._statistics.increase_relay_bytes_up(obj.mid, num_bytes)
         elif isinstance(obj, TunnelExitSocket):
             obj.bytes_up += num_bytes
             self.stats['bytes_exit'] += num_bytes
+        self._statistics.increase_relay_bytes_up(obj.mid, num_bytes)
 
     def increase_bytes_received(self, obj, num_bytes):
         if isinstance(obj, Circuit):
@@ -1167,9 +1169,11 @@ class TunnelCommunity(Community):
         elif isinstance(obj, RelayRoute):
             obj.bytes_down += num_bytes
             self.stats['bytes_relay_down'] += num_bytes
+            self._statistics.increase_relay_bytes_down(obj.mid, num_bytes)
         elif isinstance(obj, TunnelExitSocket):
             obj.bytes_down += num_bytes
             self.stats['bytes_enter'] += num_bytes
+
 
 
     #===================================================================================================================

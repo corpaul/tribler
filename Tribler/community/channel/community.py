@@ -368,7 +368,7 @@ class ChannelCommunity(Community):
 
                 torrentlist.append((self._channel_id, dispersy_id, peer_id, message.payload.infohash, message.payload.timestamp, message.payload.name, message.payload.files, message.payload.trackers))
                 self._statistics.dict_inc("torrents_received", message.authentication.member.mid.encode('hex'))
-                print "torrents_received increased 1 (peer %d)" % peer_id
+                # print "torrents_received increased 1 (peer %d)" % peer_id
                 # TODO: schedule a request for roothashes
             self._channelcast_db.on_torrents_from_dispersy(torrentlist)
         else:
