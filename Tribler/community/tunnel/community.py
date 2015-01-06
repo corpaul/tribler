@@ -898,8 +898,11 @@ class TunnelCommunity(Community):
                     break
 
             self.request_cache.add(CreatedRequestCache(self, circuit_id, candidate, candidates))
-
-            self.exit_sockets[circuit_id] = TunnelExitSocket(circuit_id, self, candidate.sock_addr, candidate._association.mid.encode('hex'))
+            if candidate._association is not None:
+                candidate_mid = candidate._association.mid.encode('hex')
+            else:
+                candidate_mid = 0
+            self.exit_sockets[circuit_id] = TunnelExitSocket(circuit_id, self, candidate.sock_addr, candidate_mid)
 
             if self.notifier:
                 from Tribler.Core.simpledefs import NTFY_TUNNEL, NTFY_JOINED
@@ -1169,10 +1172,10 @@ class TunnelCommunity(Community):
         elif isinstance(obj, RelayRoute):
             obj.bytes_down += num_bytes
             self.stats['bytes_relay_down'] += num_bytes
-            self._statistics.increase_relay_bytes_down(obj.mid, num_bytes)
         elif isinstance(obj, TunnelExitSocket):
             obj.bytes_down += num_bytes
             self.stats['bytes_enter'] += num_bytes
+        self._statistics.increase_relay_bytes_down(obj.mid, num_bytes)
 
 
 
