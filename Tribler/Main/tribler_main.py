@@ -472,6 +472,8 @@ class ABCApp(object):
             from Tribler.community.metadata.community import MetadataCommunity
             from Tribler.community.tunnel.community import TunnelCommunity, TunnelSettings
 
+            from Tribler.community.bartercast4.community import BarterCommunity
+
             # make sure this is only called once
             session.remove_observer(define_communities)
 
@@ -486,6 +488,8 @@ class ABCApp(object):
             # must be called on the Dispersy thread
             dispersy.define_auto_load(SearchCommunity, session.dispersy_member, load=True, kargs=default_kwargs)
             dispersy.define_auto_load(AllChannelCommunity, session.dispersy_member, load=True, kargs=default_kwargs)
+
+            dispersy.define_auto_load(BarterCommunity, session.dispersy_member, load=True)
 
             # load metadata community
             dispersy.define_auto_load(MetadataCommunity, session.dispersy_member, load=True, kargs=default_kwargs)

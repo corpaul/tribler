@@ -92,7 +92,7 @@ class BarterCommunity(Community):
         return False
 
     def create_stats_request(self, candidate, stats_type):
-        self._logger.info("Creating stats-request for type %d" % stats_type)
+        self._logger.info("Creating stats-request for type %d to member: %s" % (stats_type, candidate._association.mid.encode("hex")))
         meta = self.get_meta_message(u"stats-request")
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),
