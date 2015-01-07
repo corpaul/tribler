@@ -85,7 +85,7 @@ class DispersyDebugFrame(wx.Frame):
         self.__notebook.AddPage(self.__community_panel, "Community")
         self.__notebook.AddPage(self.__rawinfo_panel, "Raw Info")
         self.__notebook.AddPage(self.__runtime_panel, "Runtime Profiling")
-        self.__notebook.AddPage(self.__sharedstatistics_panel, "Shared Statistics")
+        self.__notebook.AddPage(self.__sharedstatistics_panel, "Network Health")
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.__incstuff_checkbox = wx.CheckBox(self, -1, "include stuff")
@@ -694,7 +694,7 @@ class SharedStatisticsPanel(wx.Panel):
         self.__statistic_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnStatisticSelected)
 
         self.__detail_list = AutoWidthListCtrl(self, -1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-        self.__detail_list.InsertColumn(0, "Peer", width=200)
+        self.__detail_list.InsertColumn(0, "Pubkey", width=200)
         self.__detail_list.InsertColumn(1, "Count")
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
