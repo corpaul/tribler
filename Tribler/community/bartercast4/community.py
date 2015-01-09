@@ -50,6 +50,7 @@ class BarterCommunity(Community):
 
     def __init__(self, dispersy, master, my_member):
         super(BarterCommunity, self).__init__(dispersy, master, my_member)
+        print __file__
         self._dispersy = dispersy
         self._logger = logging.getLogger(self.__class__.__name__)
 
@@ -158,6 +159,9 @@ class BarterCommunity(Community):
 
 
 class BarterCommunityCrawler(BarterCommunity):
+
+    def __init__(self, *args, **kargs):
+        super(BarterCommunityCrawler, self).__init__(*args, **kargs)
 
     def on_introduction_response(self, messages):
         super(BarterCommunity, self).on_introduction_response(messages)

@@ -1,9 +1,5 @@
-from struct import pack, unpack, unpack_from
-
-from Tribler.dispersy.member import Member
+from struct import pack, unpack_from
 from Tribler.dispersy.conversion import BinaryConversion
-from Tribler.dispersy.message import DropPacket
-from Tribler.Core.Utilities.encoding import encode, decode
 
 
 class StatisticsConversion(BinaryConversion):
