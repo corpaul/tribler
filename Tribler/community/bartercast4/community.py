@@ -53,6 +53,7 @@ class BarterCommunity(Community):
         print __file__
         self._dispersy = dispersy
         self._logger = logging.getLogger(self.__class__.__name__)
+        print "joined BC community"
 
     def initiate_meta_messages(self):
         return super(BarterCommunity, self).initiate_meta_messages() + [
