@@ -9,25 +9,9 @@ from Tribler.dispersy.destination import CandidateDestination
 from Tribler.dispersy.distribution import DirectDistribution
 from Tribler.dispersy.message import Message, DelayMessageByProof
 from Tribler.dispersy.resolution import PublicResolution
-from Tribler.dispersy.statistics import Statistics
+from Tribler.dispersy.statistics import BartercastStatisticTypes
 from twisted.internet.task import LoopingCall
 import logging
-
-
-def enum(*sequential, **named):
-    enums = dict(zip(sequential, range(len(sequential))), **named)
-    reverse = dict((value, key) for key, value in enums.iteritems())
-    enums['reverse_mapping'] = reverse
-    return type('Enum', (), enums)
-
-BartercastStatisticTypes = enum(TORRENTS_RECEIVED=1)
-
-
-def getBartercastStatisticDescription(t):
-    if t is BartercastStatisticTypes.TORRENTS_RECEIVED:
-        return "torrents_received"
-    return "unknown"
-
 
 
 class BarterCommunity(Community):
@@ -122,22 +106,14 @@ class BarterCommunity(Community):
     def create_stats_response(self, stats_type, candidate):
         self._logger.info("OUT: stats-response")
         meta = self.get_meta_message(u"stats-response")
-        # records = self._dispersy._statistics.bartercast['torrents_received']
-        records = self._dispersy._statistics.get_top_n_bartercast_statistics("torrents_received", 5)
-        # print "REAL STATS: %s" % self._dispersy._statistics.bartercast
-        # records = ["peerid1", 123, "peerid2", 456]
-        # records = []
-        # for r in self._dispersy._statistics.bartercast['torrents_received']:
-        #    records.append(r)
-        #    records.append(self._dispersy._statistics.bartercast['torrents_received'][r])
-        self._logger.info("sending stats: %s" % records)
+        records = self._dispersy._statistics.get_top_n_bartercast_statistics(stats_type, 5)
+        self._logger.info("sending stats for type %d: %s" % (stats_type, records))
 
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),
                             destination=(candidate,),
                             payload=(stats_type, records))
         self._dispersy._forward([message])
-        # self._dispersy.store_update_forward([message], store, update, forward)
 
     def check_stats_response(self, messages):
         for message in messages:

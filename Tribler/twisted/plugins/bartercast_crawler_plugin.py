@@ -37,10 +37,11 @@ class BartercastCrawler(Dispersy):
         assert isInIOThread()
         if super(BartercastCrawler, self).start():
             self._create_my_member()
+            print "loading bartercc as member %s: " % self._my_member
            # self.register_task("unload inactive communities",
             #                   LoopingCall(self.unload_inactive_communities)).start(COMMUNITY_CLEANUP_INTERVAL)
 
-            self.define_auto_load(BarterCommunityCrawler, self._my_member)
+            self.define_auto_load(BarterCommunityCrawler, self._my_member, (), load=True)
             # self.define_auto_load(TrackerHardKilledCommunity, self._my_member)
 
             # if not self._silent:

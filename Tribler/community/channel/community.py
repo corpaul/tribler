@@ -24,6 +24,8 @@ from payload import (ChannelPayload, TorrentPayload, PlaylistPayload, CommentPay
                      PlaylistTorrentPayload, MissingChannelPayload, MarkTorrentPayload)
 from twisted.python.log import msg
 from twisted.internet.task import LoopingCall
+from Tribler.dispersy.statistics import BartercastStatisticTypes, \
+    getBartercastStatisticDescription
 
 if __debug__:
     from Tribler.dispersy.tool.lencoder import log
@@ -367,7 +369,7 @@ class ChannelCommunity(Community):
                     peer_id = self._peer_db.addOrGetPeerID(authentication_member.public_key)
 
                 torrentlist.append((self._channel_id, dispersy_id, peer_id, message.payload.infohash, message.payload.timestamp, message.payload.name, message.payload.files, message.payload.trackers))
-                self._statistics.dict_inc("torrents_received", message.authentication.member.mid.encode('hex'))
+                self._statistics.dict_inc_bartercast(BartercastStatisticTypes.TORRENTS_RECEIVED, message.authentication.member.mid.encode('hex'))
                 # print "torrents_received increased 1 (peer %d)" % peer_id
                 # TODO: schedule a request for roothashes
             self._channelcast_db.on_torrents_from_dispersy(torrentlist)
@@ -376,7 +378,7 @@ class ChannelCommunity(Community):
                 print "torrents_received incr 2"
                 self._channelcast_db.newTorrent(message)
                 self._logger.debug("torrent received: %s on channel: %s" % (message.payload.infohash, self._master_member))
-                self._statistics.dict_inc("torrents_received", message.authentication.member.mid.encode('hex'))
+                self._statistics.dict_inc(BartercastStatisticTypes.TORRENTS_RECEIVED, message.authentication.member.mid.encode('hex'))
                 print self.statistics.bartercast
 
     def _disp_undo_torrent(self, descriptors, redo=False):
