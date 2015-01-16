@@ -189,7 +189,11 @@ class TestAsServer(AbstractServer):
             self.quit()
             assert boolean, reason
 
-    def startTest(self, callback):
+    def startTest(self, callback, statedir_id):
+        # check if we need to use another statedir for multiple instances
+        if statedir_id > 0:
+            self.config.set_state_dir(self.getStateDir(statedir_id))
+
         self.quitting = False
         callback()
 
@@ -259,7 +263,7 @@ class TestGuiAsServer(TestAsServer):
             if do_assert:
                 assert boolean, reason
 
-    def startTest(self, callback, min_timeout=5, force_is_unit_testing=True):
+    def startTest(self, callback, min_timeout=5, force_is_unit_testing=True, statedir_id=0):
         from Tribler.Main.vwxGUI.GuiUtility import GUIUtility
         from Tribler.Main import tribler_main
         tribler_main.ALLOW_MULTIPLE = True
@@ -297,7 +301,7 @@ class TestGuiAsServer(TestAsServer):
             self.CallConditional(30, lambda: self.session.lm and self.session.lm.initComplete, wait_for_guiutility)
 
         print >> sys.stderr, "tgs: waiting for session instance"
-        self.CallConditional(30, Session.has_instance, lambda: TestAsServer.startTest(self, wait_for_instance))
+        self.CallConditional(30, Session.has_instance, lambda: TestAsServer.startTest(self, wait_for_instance, statedir_id))
 
         # modify argv to let tribler think its running from a different directory
         sys.argv = [os.path.abspath('./.exe')]
