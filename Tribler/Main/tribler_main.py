@@ -1087,6 +1087,7 @@ def run(params=None, is_unit_testing=False):
             app = wx.GetApp()
             if not app:
                 app = wx.PySimpleApp(redirect=False)
+            print "installdir: %s" % installdir
             abc = ABCApp(params, installdir, is_unit_testing)
             if abc.frame:
                 app.SetTopWindow(abc.frame)
