@@ -403,7 +403,7 @@ class ABCApp(object):
             self.sconfig.set_torrent_collecting_dir(os.path.join(defaultDLConfig.get_dest_dir(), STATEDIR_TORRENTCOLL_DIR))
 
 
-        #TODO(emilon): Quick hack to get 6.4.1 out the door, (re tunnel_community tests disabling is_unit_testing flag)
+        # TODO(emilon): Quick hack to get 6.4.1 out the door, (re tunnel_community tests disabling is_unit_testing flag)
         if os.environ.get("TRIBLER_SKIP_OPTIN_DLG", "False") == "True":
             self.sconfig.set_tunnel_community_enabled(True)
         elif not self.sconfig.get_tunnel_community_optin_dialog_shown() and not self.is_unit_testing:
@@ -498,6 +498,8 @@ class ABCApp(object):
             from Tribler.community.metadata.community import MetadataCommunity
             from Tribler.community.tunnel.community import TunnelCommunity, TunnelSettings
 
+            from Tribler.community.bartercast4.community import BarterCommunity
+
             # make sure this is only called once
             session.remove_observer(define_communities)
 
@@ -513,8 +515,10 @@ class ABCApp(object):
             dispersy.define_auto_load(SearchCommunity, session.dispersy_member, load=True, kargs=default_kwargs)
             dispersy.define_auto_load(AllChannelCommunity, session.dispersy_member, load=True, kargs=default_kwargs)
 
+            dispersy.define_auto_load(BarterCommunity, session.dispersy_member, load=True)
+
             # load metadata community
-            #dispersy.define_auto_load(MetadataCommunity, session.dispersy_member, load=True, kargs=default_kwargs)
+            # dispersy.define_auto_load(MetadataCommunity, session.dispersy_member, load=True, kargs=default_kwargs)
             dispersy.define_auto_load(ChannelCommunity, session.dispersy_member, load=True, kargs=default_kwargs)
             dispersy.define_auto_load(PreviewChannelCommunity, session.dispersy_member, kargs=default_kwargs)
 
@@ -1020,11 +1024,11 @@ class ABCApp(object):
         GUIDBProducer.delInstance()
         DefaultDownloadStartupConfig.delInstance()
         GuiImageManager.delInstance()
-        
+
         self.closewindow.tick('Exiting now')
-        
+
         self.closewindow.Destroy()
-        
+
         return 0
 
     def db_exception_handler(self, e):

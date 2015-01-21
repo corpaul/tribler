@@ -22,7 +22,10 @@ from conversion import ChannelConversion
 from message import DelayMessageReqChannelMessage
 from payload import (ChannelPayload, TorrentPayload, PlaylistPayload, CommentPayload, ModificationPayload,
                      PlaylistTorrentPayload, MissingChannelPayload, MarkTorrentPayload)
-
+from twisted.python.log import msg
+from twisted.internet.task import LoopingCall
+from Tribler.dispersy.statistics import BartercastStatisticTypes, \
+    getBartercastStatisticDescription
 
 if __debug__:
     from Tribler.dispersy.tool.lencoder import log
@@ -93,6 +96,14 @@ class ChannelCommunity(Community):
             for community in self.dispersy.get_communities():
                 if isinstance(community, AllChannelCommunity):
                     self._channelcast_db = community._channelcast_db
+
+        # self.register_task("printzooi", LoopingCall(self.printStuff)).start(5.0, now=True)
+
+    def printStuff(self):
+        self._logger.error("\n\n")
+        self._logger.error("channel member: %s" % self._my_member)
+        for c in self._candidates.itervalues():
+            self._logger.error("candidate: %s, category: %s" % (str(c), c.get_category(time())))
 
     def initiate_meta_messages(self):
         batch_delay = 3.0
@@ -240,6 +251,7 @@ class ChannelCommunity(Community):
 
     def set_channel_mode(self, mode):
         curmode, isModerator = self.get_channel_mode()
+        self._logger.debug("Setting channel mode to: %s (isModerator: %s)" % (mode, isModerator))
         if isModerator and mode != curmode:
             public_messages = ChannelCommunity.CHANNEL_ALLOWED_MESSAGES[mode]
 
@@ -265,6 +277,7 @@ class ChannelCommunity(Community):
         message = meta.impl(authentication=(self._my_member,),
                             distribution=(self.claim_global_time(),),
                             payload=(name, description))
+        msg("channel-message-forwarded")
         self._dispersy.store_update_forward([message], store, update, forward)
         return message
 
@@ -278,6 +291,7 @@ class ChannelCommunity(Community):
             yield message
 
     def _disp_on_channel(self, messages):
+        msg("channel-message-received")
         if self.integrate_with_tribler:
             for message in messages:
                 assert self._cid == self._master_member.mid
@@ -324,7 +338,9 @@ class ChannelCommunity(Community):
                                 payload=(infohash, timestamp, name, files, trackers))
 
             messages.append(message)
+            self._logger.debug("created-torrent: %s on channel: %s" % (infohash, self._my_member))
 
+        self._logger.error("created torrent on channel %s to candidates: %s" % (self._my_member, str(self._candidates)))
         self._dispersy.store_update_forward(messages, store, update, forward)
         return messages
 
@@ -341,6 +357,7 @@ class ChannelCommunity(Community):
             yield message
 
     def _disp_on_torrent(self, messages):
+        self._logger.error("received TORRENTs")
         if self.integrate_with_tribler:
             torrentlist = []
             for message in messages:
@@ -352,12 +369,17 @@ class ChannelCommunity(Community):
                     peer_id = self._peer_db.addOrGetPeerID(authentication_member.public_key)
 
                 torrentlist.append((self._channel_id, dispersy_id, peer_id, message.payload.infohash, message.payload.timestamp, message.payload.name, message.payload.files, message.payload.trackers))
-
+                self._statistics.dict_inc_bartercast(BartercastStatisticTypes.TORRENTS_RECEIVED, message.authentication.member.mid.encode('hex'))
+                # print "torrents_received increased 1 (peer %d)" % peer_id
                 # TODO: schedule a request for roothashes
             self._channelcast_db.on_torrents_from_dispersy(torrentlist)
         else:
             for message in messages:
+                print "torrents_received incr 2"
                 self._channelcast_db.newTorrent(message)
+                self._logger.debug("torrent received: %s on channel: %s" % (message.payload.infohash, self._master_member))
+                self._statistics.dict_inc(BartercastStatisticTypes.TORRENTS_RECEIVED, message.authentication.member.mid.encode('hex'))
+                print self.statistics.bartercast
 
     def _disp_undo_torrent(self, descriptors, redo=False):
         for _, _, packet in descriptors:

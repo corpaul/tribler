@@ -12,7 +12,7 @@ class Circuit(object):
     """ Circuit data structure storing the id, state and hops """
 
     def __init__(self, circuit_id, goal_hops=0, first_hop=None, proxy=None,
-                 ctype=CIRCUIT_TYPE_DATA, callback=None, required_exit=None):
+                 ctype=CIRCUIT_TYPE_DATA, callback=None, required_exit=None, mid=None):
         """
         Instantiate a new Circuit data structure
         :type proxy: TunnelCommunity
@@ -42,6 +42,7 @@ class Circuit(object):
         self.ctype = ctype
         self.callback = callback
         self.required_exit = required_exit
+        self.mid = mid
 
     @property
     def hops(self):
@@ -144,15 +145,17 @@ class RelayRoute(object):
     it is online or not
     """
 
-    def __init__(self, circuit_id, sock_addr, rendezvous_relay=False):
+    def __init__(self, circuit_id, sock_addr, mid=0, rendezvous_relay=False):
         """
         @type sock_addr: (str, int)
         @type circuit_id: int
+        @type mid: str
         @return:
         """
 
         self.sock_addr = sock_addr
         self.circuit_id = circuit_id
+        self.mid = mid
         self.online = False
         self.creation_time = time.time()
         self.last_incoming = time.time()
