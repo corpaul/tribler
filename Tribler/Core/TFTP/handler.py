@@ -13,7 +13,8 @@ from twisted.internet import reactor
 
 from Tribler.dispersy.taskmanager import TaskManager, LoopingCall
 from Tribler.dispersy.candidate import Candidate
-from Tribler.dispersy.util import call_on_reactor_thread, blocking_call_on_reactor_thread, attach_runtime_statistics
+from Tribler.dispersy.util import call_on_reactor_thread, blocking_call_on_reactor_thread
+from Tribler.dispersy.statistics import attach_runtime_statistics
 from .session import Session, DEFAULT_BLOCK_SIZE, DEFAULT_TIMEOUT
 from .packet import (encode_packet, decode_packet, OPCODE_RRQ, OPCODE_WRQ, OPCODE_ACK, OPCODE_DATA, OPCODE_OACK,
                      OPCODE_ERROR, ERROR_DICT)
@@ -156,7 +157,7 @@ class TftpHandler(TaskManager):
                 # fail as timeout
                 self._logger.info(u"%s timed out", session)
                 if session.failure_callback:
-                    callback = lambda cb = session.failure_callback, addr = session.address, fn = session.file_name,\
+                    callback = lambda cb = session.failure_callback, addr = session.address, fn = session.file_name, \
                         msg = "timeout", ei = session.extra_info: cb(addr, fn, msg, ei)
                     self._callbacks.append(callback)
 
@@ -241,13 +242,13 @@ class TftpHandler(TaskManager):
         if session.is_failed:
             self._logger.info(u"%s failed", session)
             if session.failure_callback:
-                callback = lambda cb = session.failure_callback, a = session.address, fn = session.file_name,\
+                callback = lambda cb = session.failure_callback, a = session.address, fn = session.file_name, \
                     msg = "download failed", ei = session.extra_info: cb(a, fn, msg, ei)
                 self._callbacks.append(callback)
         elif session.is_done:
             self._logger.info(u"%s finished", session)
             if session.success_callback:
-                callback = lambda cb = session.success_callback, a = session.address, fn = session.file_name,\
+                callback = lambda cb = session.success_callback, a = session.address, fn = session.file_name, \
                     fd = session.file_data, ei = session.extra_info: cb(a, fn, fd, ei)
                 self._callbacks.append(callback)
 
@@ -413,14 +414,14 @@ class TftpHandler(TaskManager):
             if session.last_received_packet is None:
                 # check options
                 if session.block_size != packet['options']['blksize']:
-                    msg = "%s OACK blksize mismatch: %s != %s (expected)" %\
+                    msg = "%s OACK blksize mismatch: %s != %s (expected)" % \
                           (session, session.block_size, packet['options']['blksize'])
                     self._logger.error(msg)
                     self._handle_error(session, 0, error_msg=msg)  # Error: blksize mismatch
                     return
 
                 if session.timeout != packet['options']['timeout']:
-                    msg = "%s OACK timeout mismatch: %s != %s (expected)" %\
+                    msg = "%s OACK timeout mismatch: %s != %s (expected)" % \
                           (session, session.timeout, packet['options']['timeout'])
                     self._logger.error(msg)
                     self._handle_error(session, 0, error_msg=msg)  # Error: timeout mismatch
@@ -450,7 +451,7 @@ class TftpHandler(TaskManager):
 
         # check block_number
         if packet['block_number'] != session.block_number:
-            msg = "%s Got ACK with block# %s while expecting %s" %\
+            msg = "%s Got ACK with block# %s while expecting %s" % \
                   (session, packet['block_number'], session.block_number)
             self._logger.error(msg)
             self._handle_error(session, 0, error_msg=msg)  # Error: block_number mismatch
@@ -493,7 +494,7 @@ class TftpHandler(TaskManager):
 
         # check block number
         if packet['block_number'] != session.block_number:
-            msg = "%s got ACK with block# %s while expecting %s" %\
+            msg = "%s got ACK with block# %s while expecting %s" % \
                   (session, packet['block_number'], session.block_number)
             self._logger.error(msg)
             self._handle_error(session, 0, error_msg=msg)  # Error: block_number mismatch
