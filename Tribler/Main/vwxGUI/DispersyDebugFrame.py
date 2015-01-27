@@ -9,7 +9,7 @@ from Tribler.Main.Utility.GuiDBHandler import startWorker, GUI_PRI_DISPERSY
 from Tribler.Main.Utility.utility import compute_ratio, eta_value, size_format
 
 from operator import itemgetter
-from Tribler.dispersy.statistics import getBartercastStatisticDescription
+from Tribler.dispersy.statistics import BartercastStatisticTypes
 
 DATA_NONE = ""
 
@@ -756,8 +756,8 @@ class SharedStatisticsPanel(wx.Panel):
 
             # update GUI
             if idx < self.__statistic_list.GetItemCount():
-                self.__statistic_list.SetStringItem(idx, 0, getBartercastStatisticDescription(stat))
+                self.__statistic_list.SetStringItem(idx, 0, BartercastStatisticTypes.reverse_mapping[stat])
                 self.__statistic_list.SetStringItem(idx, 1, total_count_str)
             else:
-                self.__statistic_list.Append([getBartercastStatisticDescription(stat)])
+                self.__statistic_list.Append([BartercastStatisticTypes.reverse_mapping[stat]])
             idx += 1

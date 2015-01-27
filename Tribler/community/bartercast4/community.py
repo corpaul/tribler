@@ -146,6 +146,7 @@ class BarterCommunityCrawler(BarterCommunity):
         for message in messages:
             # self.do_stats(message.candidate, lambda c, s, m=message: handler(c, s, m))
             print "in on_introduction_response: Requesting stats from %s" % message.candidate
+            # @TODO add other message types
             self.create_stats_request(message.candidate, BartercastStatisticTypes.TORRENTS_RECEIVED)
 
     def start_walking(self):

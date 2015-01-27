@@ -24,8 +24,7 @@ from payload import (ChannelPayload, TorrentPayload, PlaylistPayload, CommentPay
                      PlaylistTorrentPayload, MissingChannelPayload, MarkTorrentPayload)
 from twisted.python.log import msg
 from twisted.internet.task import LoopingCall
-from Tribler.dispersy.statistics import BartercastStatisticTypes, \
-    getBartercastStatisticDescription
+from Tribler.dispersy.statistics import BartercastStatisticTypes
 
 if __debug__:
     from Tribler.dispersy.tool.lencoder import log
