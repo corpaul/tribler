@@ -47,6 +47,7 @@ from Tribler.dispersy.message import Message, DropMessage
 from Tribler.dispersy.resolution import PublicResolution
 from Tribler.dispersy.util import call_on_reactor_thread
 from Tribler.dispersy.requestcache import NumberCache, RandomNumberCache
+from Tribler.dispersy.statistics import BartercastStatisticTypes
 
 
 class CircuitRequestCache(NumberCache):
@@ -539,7 +540,7 @@ class TunnelCommunity(Community):
 
         dh_first_part_enc = self.crypto.hybrid_encrypt_str(first_hop.get_member()._ec, long_to_bytes(circuit.unverified_hop.dh_first_part))
         self.increase_bytes_sent(circuit, self.send_cell([first_hop], u"create", (circuit_id, dh_first_part_enc)))
-        self._statistics.increase_tunnels_created(circuit.mid)
+        self._statistics.increase_tunnel_stats(BartercastStatisticTypes.TUNNELS_CREATED, circuit.mid)
 
     def readd_bittorrent_peers(self):
         for torrent, peers in self.bittorrent_peers.items():
@@ -1157,27 +1158,29 @@ class TunnelCommunity(Community):
         if isinstance(obj, Circuit):
             obj.bytes_up += num_bytes
             self.stats['bytes_up'] += num_bytes
+            self._statistics.increase_tunnel_stats(BartercastStatisticTypes.TUNNELS_BYTES_SENT, obj.mid, num_bytes)
         elif isinstance(obj, RelayRoute):
             obj.bytes_up += num_bytes
             self.stats['bytes_relay_up'] += num_bytes
+            self._statistics.increase_tunnel_stats(BartercastStatisticTypes.TUNNELS_RELAY_BYTES_SENT, obj.mid, num_bytes)
         elif isinstance(obj, TunnelExitSocket):
             obj.bytes_up += num_bytes
             self.stats['bytes_exit'] += num_bytes
-        self._statistics.increase_relay_bytes_up(obj.mid, num_bytes)
+            self._statistics.increase_tunnel_stats(BartercastStatisticTypes.TUNNELS_EXIT_BYTES_SENT, obj.mid, num_bytes)
 
     def increase_bytes_received(self, obj, num_bytes):
         if isinstance(obj, Circuit):
             obj.bytes_down += num_bytes
             self.stats['bytes_down'] += num_bytes
+            self._statistics.increase_tunnel_stats(BartercastStatisticTypes.TUNNELS_BYTES_RECEIVED, obj.mid, num_bytes)
         elif isinstance(obj, RelayRoute):
             obj.bytes_down += num_bytes
             self.stats['bytes_relay_down'] += num_bytes
+            self._statistics.increase_tunnel_stats(BartercastStatisticTypes.TUNNELS_RELAY_BYTES_RECEIVED, obj.mid, num_bytes)
         elif isinstance(obj, TunnelExitSocket):
             obj.bytes_down += num_bytes
             self.stats['bytes_enter'] += num_bytes
-        self._statistics.increase_relay_bytes_down(obj.mid, num_bytes)
-
-
+            self._statistics.increase_tunnel_stats(BartercastStatisticTypes.TUNNELS_EXIT_BYTES_RECEIVED, obj.mid, num_bytes)
 
     #===================================================================================================================
     # Hidden services
